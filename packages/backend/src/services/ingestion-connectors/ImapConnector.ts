@@ -11,6 +11,7 @@ import { ImapFlow } from 'imapflow';
 import { simpleParser, ParsedMail, Attachment, AddressObject, Headers } from 'mailparser';
 import { config } from '../../config';
 import { logger } from '../../config/logger';
+import { extractOriginalDate } from '../../helpers/dateExtractor';
 import { getThreadId } from './helpers/utils';
 import { writeEmailToTempFile } from './helpers/tempFile';
 
@@ -371,6 +372,11 @@ export class ImapConnector implements IEmailConnector {
 
 		const threadId = getThreadId(parsedEmail.headers);
 
+		const { date: receivedAt, source: receivedAtSource } = extractOriginalDate(
+			parsedEmail,
+			msg.source instanceof Buffer ? msg.source : undefined
+		);
+
 		return {
 			id: parsedEmail.messageId || msg.uid.toString(),
 			threadId: threadId,
@@ -383,7 +389,8 @@ export class ImapConnector implements IEmailConnector {
 			html: parsedEmail.html || '',
 			headers: parsedEmail.headers,
 			attachments,
-			receivedAt: parsedEmail.date || new Date(),
+			receivedAt,
+			receivedAtSource,
 			tempFilePath,
 			path: mailboxPath,
 			isDraft: msg.flags?.has('\\Draft') || undefined,

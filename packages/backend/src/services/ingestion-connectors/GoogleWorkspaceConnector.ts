@@ -11,6 +11,7 @@ import type { IEmailConnector, ConnectorOptions } from '../EmailProviderFactory'
 import { findByEmailKey } from '../../helpers/emailAddress';
 import { logger } from '../../config/logger';
 import { simpleParser, ParsedMail, Attachment, AddressObject, Headers } from 'mailparser';
+import { extractOriginalDate } from '../../helpers/dateExtractor';
 import { getThreadId } from './helpers/utils';
 import { writeEmailToTempFile } from './helpers/tempFile';
 import {
@@ -515,6 +516,11 @@ export class GoogleWorkspaceConnector implements IEmailConnector {
 		// sweeper anywhere to collect it.
 		const tempFilePath = await writeEmailToTempFile(rawEmail);
 
+		const { date: receivedAt, source: receivedAtSource } = extractOriginalDate(
+			parsedEmail,
+			rawEmail
+		);
+
 		return {
 			id: messageId,
 			threadId,
@@ -529,7 +535,8 @@ export class GoogleWorkspaceConnector implements IEmailConnector {
 			html: parsedEmail.html || '',
 			headers: parsedEmail.headers,
 			attachments,
-			receivedAt: parsedEmail.date || new Date(),
+			receivedAt,
+			receivedAtSource,
 			path,
 			isDraft: isDraft || undefined,
 			tags,
