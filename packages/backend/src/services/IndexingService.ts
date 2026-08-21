@@ -508,7 +508,10 @@ export class IndexingService {
 			subject: email.subject || '',
 			body: emailBodyText,
 			attachments: attachmentContents,
-			timestamp: new Date(email.sentAt).getTime(),
+			// Omitted rather than defaulted when the original date is unknown: new Date(null)
+			// is the epoch and new Date(undefined) is NaN, and either would sort this email
+			// into a date it was never sent (#372).
+			...(email.sentAt ? { timestamp: new Date(email.sentAt).getTime() } : {}),
 			ingestionSourceId: email.ingestionSourceId,
 			hasAttachments: !!email.hasAttachments,
 		};
@@ -681,7 +684,10 @@ export class IndexingService {
 						content: truncateToBytes(sanitizeText(a?.content || ''), maxTextBytes),
 					}))
 				: [],
-			timestamp: typeof doc.timestamp === 'number' ? doc.timestamp : Date.now(),
+			// A document with no usable original date is indexed without a timestamp rather
+			// than stamped with the reindex time, which would silently invent a send date
+			// for it and change the answer to every date-range query (#372).
+			...(typeof doc.timestamp === 'number' ? { timestamp: doc.timestamp } : {}),
 			ingestionSourceId: doc.ingestionSourceId || 'unknown',
 			hasAttachments: doc.hasAttachments ?? (doc.attachments?.length ?? 0) > 0,
 		};

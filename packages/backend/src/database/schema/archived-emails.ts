@@ -1,4 +1,5 @@
 import { relations, sql } from 'drizzle-orm';
+import type { OriginalDateSource } from '@open-archiver/types';
 import {
 	boolean,
 	integer,
@@ -25,7 +26,9 @@ export const archivedEmails = pgTable(
 		/** The provider-specific message ID (e.g., Gmail API ID, Graph API ID).
 		 * Used by the pre-fetch duplicate check to avoid unnecessary API calls during retries. */
 		providerMessageId: text('provider_message_id'),
-		sentAt: timestamp('sent_at', { withTimezone: true }).notNull(),
+		/** Original send date from the email itself. Null when no usable date could be
+		 *  parsed from the Date: or Received: headers — see originalDateSource. */
+		sentAt: timestamp('sent_at', { withTimezone: true }),
 		subject: text('subject'),
 		senderName: text('sender_name'),
 		senderEmail: text('sender_email').notNull(),
@@ -42,6 +45,14 @@ export const archivedEmails = pgTable(
 		isOnLegalHold: boolean('is_on_legal_hold').notNull().default(false),
 		isJournaled: boolean('is_journaled').default(false),
 		archivedAt: timestamp('archived_at', { withTimezone: true }).notNull().defaultNow(),
+		/** Which header sentAt came from, so the UI can distinguish a real send date from a
+		 *  Received-header approximation and from "no date at all". */
+		originalDateSource: text('original_date_source')
+			.$type<OriginalDateSource>()
+			.notNull()
+			.default('header'),
+		/** Set when the backfill job recomputed sentAt for a row ingested before this change. */
+		dateBackfilledAt: timestamp('date_backfilled_at', { withTimezone: true }),
 		path: text('path'),
 		tags: jsonb('tags'),
 	},
