@@ -585,6 +585,7 @@
 			"date": "Date",
 			"subject": "Subject",
 			"sender": "Sender",
+			"source": "Source",
 			"inbox": "Inbox",
 			"path": "Path",
 			"actions": "Actions",
