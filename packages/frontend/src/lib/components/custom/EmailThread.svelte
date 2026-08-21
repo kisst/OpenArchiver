@@ -61,7 +61,11 @@
 								>{$t('app.archive.from')}: {item.senderName ||
 									item.senderEmail}</span
 							>
-							<time class="">{new Date(item.sentAt).toLocaleString()}</time>
+							<time class=""
+								>{item.sentAt
+									? new Date(item.sentAt).toLocaleString()
+									: $t('app.archive.original_date_unknown')}</time
+							>
 						</div>
 					</div>
 				{/each}

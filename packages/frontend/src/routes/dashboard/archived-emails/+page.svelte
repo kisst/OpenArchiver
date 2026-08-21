@@ -163,7 +163,17 @@
 								}}
 							/>
 						</Table.Cell>
-						<Table.Cell>{new Date(email.sentAt).toLocaleString()}</Table.Cell>
+						<Table.Cell>
+							{#if email.sentAt}
+								{new Date(email.sentAt).toLocaleString()}
+							{:else}
+								<span
+									class="text-muted-foreground"
+									title={$t('app.archive.original_date_unknown_hint')}
+									>{$t('app.archive.original_date_unknown')}</span
+								>
+							{/if}
+						</Table.Cell>
 
 						<Table.Cell>
 							<div class="max-w-100 truncate">

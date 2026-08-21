@@ -45,7 +45,9 @@
 	/** Scheduled deletion date from the matching retention policy: sentAt + appliedRetentionDays */
 	let scheduledDeletionDate = $derived.by(() => {
 		if (!email || !retentionPolicy || retentionPolicy.appliedRetentionDays === 0) return null;
-		const sentDate = new Date(email.sentAt);
+		// Retention runs from the archive date when the original is unknown: dropping the
+		// deadline entirely would leave the email with no retention at all (#372).
+		const sentDate = new Date(email.sentAt ?? email.archivedAt);
 		const deletionDate = new Date(sentDate);
 		deletionDate.setDate(deletionDate.getDate() + retentionPolicy.appliedRetentionDays);
 		return deletionDate;
@@ -57,7 +59,8 @@
 	 */
 	let scheduledDeletionDateByLabel = $derived.by(() => {
 		if (!email || !emailRetentionLabel || emailRetentionLabel.isLabelDisabled) return null;
-		const sentDate = new Date(email.sentAt);
+		// As above — the label's clock falls back to the archive date.
+		const sentDate = new Date(email.sentAt ?? email.archivedAt);
 		const deletionDate = new Date(sentDate);
 		deletionDate.setDate(deletionDate.getDate() + emailRetentionLabel.retentionPeriodDays);
 		return deletionDate;
@@ -291,9 +294,11 @@
 					<Card.Description>
 						{$t('app.archive.from')}: {email.senderName && email.senderEmail
 							? `${email.senderName} <${email.senderEmail}>`
-							: email.senderName || email.senderEmail} | {$t('app.archive.sent')}: {new Date(
-							email.sentAt
-						).toLocaleString()}
+							: email.senderName || email.senderEmail} | {$t('app.archive.sent')}: {email.sentAt
+							? new Date(email.sentAt).toLocaleString()
+							: $t('app.archive.original_date_unknown')} | {$t(
+							'app.archive.archived_on'
+						)}: {new Date(email.archivedAt).toLocaleString()}
 					</Card.Description>
 				</Card.Header>
 				<Card.Content>

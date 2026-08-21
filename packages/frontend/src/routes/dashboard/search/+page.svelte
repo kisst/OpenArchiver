@@ -368,12 +368,22 @@
 														<span
 															class="bg-accent h-4 w-40 animate-pulse rounded-md"
 														></span>
-													{:else}
+													{:else if hit.timestamp !== undefined}
 														<span class="inline-block">
 															{new Date(
 																hit.timestamp
 															).toLocaleString()}
 														</span>
+													{:else}
+														<span
+															class="text-muted-foreground inline-block"
+															title={$t(
+																'app.archive.original_date_unknown_hint'
+															)}
+															>{$t(
+																'app.archive.original_date_unknown'
+															)}</span
+														>
 													{/if}
 												</span>
 											</CardDescription>
